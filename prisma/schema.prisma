@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  password   String?
+  role       role     @default(guest)
+  room       room     @relation(fields: [room_id], references: [id])
+  tower      tower
+  cards      card[]
+  room_id    String
+  created_at DateTime
+  updated_at DateTime
+}
+
+enum tower {
+  north_east
+  north_west
+  south_east
+  south_west
+}
+
+enum role {
+  guest
+  owner
+}
+
+model room {
+  id               String         @id @default(uuid())
+  created_at       DateTime
+  updated_at       DateTime
+  wind_direction   wind_direction
+  deck_id          Int
+  users            User[]
+  deckId           Int
+  deck             deck[]
+  fire_gems        Json
+  firebreak_tokens Json
+}
+
+model deck {
+  id      Int    @id @default(autoincrement())
+  cards   card[]
+  room    room   @relation(fields: [room_id], references: [id])
+  room_id String
+}
+
+model card {
+  id         Int     @id @default(autoincrement())
+  belongs_to User?   @relation(fields: [user_id], references: [id])
+  played     Boolean
+  card_id    Int
+  deck       deck    @relation(fields: [deck_id], references: [id])
+  user_id    String?
+  deck_id    Int
+}
+
+model available_cards {
+  id          Int             @id @default(autoincrement())
+  name        String
+  description String
+  type        card_type
+  action      action
+  pattern     pattern?
+  direction   wind_direction?
+  event       event?
+}
+
+enum action {
+  add
+  remove
+  build
+}
+
+enum event {
+  firestorm
+  aid
+  shadow
+}
+
+enum wind_direction {
+  north
+  east
+  south
+  west
+}
+
+enum pattern {
+  square
+  line
+  void_square
+  point
+  double_point
+}
+
+enum card_type {
+  fire
+  wind
+  water
+  firebreak
+  event
+}
